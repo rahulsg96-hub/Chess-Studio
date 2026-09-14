@@ -11,13 +11,15 @@ def count_words(text):
 
 def main():
     if len(sys.argv) < 2:
-        print("usage: python wordfreq.py <file>")
+        print("usage: python wordfreq.py <file> [top-n]")
         return 1
+
+    top_n = int(sys.argv[2]) if len(sys.argv) > 2 else 5
 
     with open(sys.argv[1]) as f:
         counts = count_words(f.read())
 
-    for word, n in counts.most_common(5):
+    for word, n in counts.most_common(top_n):
         print(f"{n:4}  {word}")
     return 0
 

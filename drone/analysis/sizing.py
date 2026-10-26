@@ -63,6 +63,8 @@ FULL_BUILD = CONFIGS[-2][1]
 
 BATTERIES = [(cells, mah) for cells in (3, 4) for mah in (450, 550, 650, 850)]
 BASELINE_BATTERY = (4, 650)
+# Listed masses of packs we have actually picked; they beat the Wh/kg estimate.
+BATTERY_MASS_OVERRIDE_G = {(4, 650): 82}   # Tattu R-Line 650 4S 95C XT30; weigh on arrival
 
 
 def load_items(path):
@@ -89,6 +91,8 @@ def avionics_power(items, tags):
 
 
 def battery_mass_g(cells, mah):
+    if (cells, mah) in BATTERY_MASS_OVERRIDE_G:
+        return BATTERY_MASS_OVERRIDE_G[(cells, mah)]
     wh = cells * CELL_V_NOMINAL * mah / 1000
     return wh / LIPO_WH_PER_KG * 1000 + BATTERY_LEADS_G
 
@@ -181,9 +185,12 @@ def report(items):
         mixed_min = minutes(wh, watts * MIXED_POWER_FACTOR)
         ok = (auw <= MASS_DESIGN_TARGET_G and hover_min >= HOVER_MIN_TARGET
               and mixed_min >= MIXED_MIN_TARGET)
-        p(f"| {cells}S {mah} mAh | {batt_g:.0f} | {auw:.0f} | {watts:.1f} | "
+        listed = "\\*" if (cells, mah) in BATTERY_MASS_OVERRIDE_G else ""
+        p(f"| {cells}S {mah} mAh{listed} | {batt_g:.0f} | {auw:.0f} | {watts:.1f} | "
           f"{watts / (cells * CELL_V_NOMINAL):.1f} | {hover_min:.1f} | {lo:.1f}-{hi:.1f} | "
           f"{mixed_min:.1f} | {min_kv(auw, cells):.0f} | {check(ok)} |")
+    p("")
+    p(f"\\* Listed mass of the chosen pack. Other packs use the {LIPO_WH_PER_KG} Wh/kg estimate.")
     p("")
 
     cells, mah = BASELINE_BATTERY

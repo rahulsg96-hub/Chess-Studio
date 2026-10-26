@@ -1,0 +1,28 @@
+priority,category,item,qty,unit_eur,price_basis,where,notes
+now,Ground,RadioMaster Pocket ELRS (EU LBT version),1,78,listing,"MotionRC EU, Origin Hobbies",Also the joystick for the simulator; buy the LBT version
+now,Ground,18650 Li-ion cells for the radio,2,6,estimate,,Check the listing: the Pocket ships without cells
+now,Ground,DJI Goggles N3,1,269,listing,"DJI store, Studiosport",Launch price in the eurozone
+now,Ground,ToolkitRC M7AC charger (AC/DC),1,85,estimate,"Rotorama, Studiosport",XT30 built in; measures internal resistance
+now,Ground,LiPo safety bag,1,12,estimate,,
+now,Ground,XT30 smoke stopper,1,10,estimate,,Every first power-up goes through it
+now,Ground,FPV simulator (Liftoff or Uncrashed),1,20,estimate,Steam,Practice before the first real flight
+now,Airframe,GEPRC Taker F405 20A AIO with ELRS 2.4 GHz,1,80,listing,"FPV24, Rotorama",Listed at 73-83 EUR
+now,Airframe,BetaFPV 1404 3800KV motors (4-pack),1,60,estimate,BetaFPV EU store,
+now,Airframe,"3-inch tri-blade props, 1.5 mm shaft (HQProp T3x1.8x3 and Gemfan 3028, 3 sets each)",6,4,estimate,,Two types to compare on the thrust stand
+now,FPV,DJI O4 Air Unit Lite,1,115,estimate,"FPV24, Studiosport",Listed at USD 109 / GBP 99
+now,Power,Tattu R-Line 650 mAh 4S 95C XT30,4,22,estimate,,
+now,Airframe,Filament: PETG-CF or PA-CF (500 g-1 kg),1,30,estimate,,For the frame
+now,Airframe,Filament: TPU 95A (500 g),1,18,estimate,,For soft mounts and the camera mount
+now,Airframe,"Hardware: M2 screws/nuts/standoffs, XT30 pigtails, low-ESR capacitor, silicone wire, heat shrink, battery straps",1,30,estimate,,
+now,Shipping,Shipping from several EU shops,1,40,estimate,,Buying inside the EU avoids customs fees and gets CE/LBT versions
+recommended,Airframe,Spare GEPRC Taker F405 AIO,1,80,listing,"FPV24, Rotorama",Custom firmware plus crashes: a spare keeps the project moving
+recommended,Airframe,Spare BetaFPV 1404 3800KV motors,2,16,estimate,BetaFPV EU store,
+recommended,Power,Two more Tattu R-Line 650 mAh 4S packs,2,22,estimate,,Six packs in total
+recommended,Dev,Adafruit Feather STM32F405 Express,1,30,listing,"Adafruit resellers",Same MCU as the AIO board; SWD pads underneath
+recommended,Dev,STLINK-V3MINIE debugger,1,15,estimate,"Mouser, Farnell",
+recommended,Dev,ICM-42688-P breakout board,1,15,estimate,,Same IMU as the AIO board; for driver work on the dev board
+recommended,Test,"Thrust stand electronics: 1 kg load cell, HX711, XT30 power meter",1,25,estimate,,The stand itself is printed
+recommended,Test,Multimeter,1,25,estimate,,Skip if you already have one
+later,Comms,Seeed XIAO ESP32C3 (with u.FL antenna),2,6,listing,"Berrybase, The Pi Hut",Block 3
+later,Sensors,MicoAir MTF-01 optical flow + ToF,1,26,listing,Rotorama,Block 4
+later,Sensors,HGLRC M100-5883 GPS + compass,1,20,estimate,Studiosport,Block 5

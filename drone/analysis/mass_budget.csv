@@ -1,15 +1,16 @@
 tag,subsystem,item,mass_g,power_w,status,notes
 core,Frame,Body + arms (3D-printed PA-CF / PETG-CF),24,0,estimate,Fallback: 3 mm carbon plate arms cut from the same CAD
-core,Frame,"Screws, standoffs, TPU FC/camera mounts",5,0,estimate,
-core,Propulsion,4x 1404-class motors incl. leads,38,0,estimate,~9.5 g each; motor power is modelled separately
-core,Propulsion,"4x 3-inch tri-blade props",7.2,0,estimate,~1.8 g each
-core,Avionics,AIO flight controller + 4-in-1 ESC (20x20),7,0.8,estimate,STM32F4/F7 + ICM-42688-P/BMI270 + baro
-core,Avionics,ExpressLRS 2.4 GHz receiver + antenna,1.5,0.2,estimate,CRSF over UART
+core,Frame,"Screws, standoffs, TPU FC mount",5,0,estimate,
+core,Propulsion,4x BetaFPV 1404 3800KV motors,38.6,0,datasheet,9.66 g each incl. leads; motor power is modelled separately
+core,Propulsion,4x 3-inch tri-blade props,6,0,datasheet,HQProp T3x1.8x3 (1.2 g) or Gemfan 3028 (1.49 g); budget uses the heavier
+core,Avionics,GEPRC Taker F405 20A AIO with built-in ELRS 2.4 GHz receiver,7,1.0,datasheet,"F405, ICM-42688-P, DPS310 baro, 16 MB flash, 25.5 mm mount"
+core,Avionics,Receiver antenna (2.4 GHz),0.5,0,estimate,
 core,Power,"XT30 pigtail, low-ESR capacitor, power wiring",5,0,estimate,
 core,Power,Battery strap + grip pad,3,0,estimate,
-fpv,FPV,Camera (analog nano class),4,0.8,estimate,Digital (DJI/Walksnail/HDZero) is heavier: re-run once chosen
-fpv,FPV,Video transmitter + 5.8 GHz antenna,4.5,2.5,estimate,Power at ~200 mW RF output
-companion,Comms,ESP32-C3 mini board + antenna,2.5,0.6,estimate,Wi-Fi/BLE bridge to phone/laptop; average draw
-indoor,Sensors,Optical flow + time-of-flight combo module,3,0.15,estimate,Downward-facing; PMW3901 + VL53L1X class
-outdoor,Sensors,GPS (u-blox M10 class) + compass on mast,7,0.15,estimate,Mast keeps the compass away from power wiring
+fpv,FPV,DJI O4 Air Unit Lite (camera + video transmitter),8.2,5.0,datasheet,~6 W peak; runs from the 5 V BEC (input 3.7-13.2 V)
+fpv,FPV,Camera mount (TPU),1.5,0,estimate,
+companion,Comms,Seeed XIAO ESP32C3 + u.FL antenna,3,0.6,estimate,Runs DroneBridge (MAVLink over Wi-Fi); average draw
+indoor,Sensors,MicoAir MTF-01 optical flow + ToF (8 m),4.5,0.3,datasheet,UART at 115200 baud; MSP or MAVLink
+outdoor,Sensors,HGLRC M100-5883 GPS + compass,7.7,0.15,datasheet,Lighter option: NewBeeDrone M10Q (~2.6 g)
+outdoor,Sensors,GPS mast (printed),2,0,estimate,Keeps the compass away from power wiring
 guards,Frame,Printed prop guards (indoor testing),12,0,estimate,Optional; bolt-on

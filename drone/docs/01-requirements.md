@@ -9,7 +9,8 @@ verify it:
 - **D** — demonstration
 
 The **Block** column says which roadmap stage first has to meet it (see
-[02-architecture.md](02-architecture.md#roadmap)).
+[02-architecture.md](02-architecture.md#roadmap)). The REQ-R rows reflect French rules as
+summarised in [03-components.md](03-components.md#french-rules-that-shape-the-design).
 
 Numbers marked † come from the [sizing model](../analysis/sizing-report.md). They get re-checked
 once real parts are on the scale and the thrust stand.
@@ -46,8 +47,8 @@ firmware, modular stages) count as requirements here, not extras.
 | ID | Requirement | Verify | Block |
 |---|---|:-:|:-:|
 | REQ-P1 | Thrust-to-weight ≥ **3 : 1** at 3.5 V/cell (sagged pack). Design target 4 : 1 → ≥ 200 g thrust per motor.† | A, T | 0 |
-| REQ-P2 | Hover endurance ≥ **8 min** on the full build without guards (model predicts ~10 min).† | T | 5 |
-| REQ-P3 | Mixed-flying endurance ≥ **5 min** (model predicts ~6.5 min).† | T | 5 |
+| REQ-P2 | Hover endurance ≥ **8 min** on the full build without guards (model predicts ~9 min, range 7.8–10.8).† | T | 5 |
+| REQ-P3 | Mixed-flying endurance ≥ **5 min** (model predicts ~6 min).† | T | 5 |
 | REQ-P4 | Angle mode, hover in still air: attitude error ≤ 2° RMS. | T | 1 |
 | REQ-P5 | Indoors, over a textured floor in good light: altitude within ±0.2 m and horizontal drift ≤ 0.5 m over 30 s. | T | 4 |
 | REQ-P6 | Outdoors, wind ≤ 5 m/s: GPS position hold within 2 m horizontally. | T | 5 |
@@ -69,7 +70,19 @@ firmware, modular stages) count as requirements here, not extras.
 
 | ID | Requirement | Verify | Block |
 |---|---|:-:|:-:|
-| REQ-R1 | Meets local rules for sub-250 g drones: registration, operator test, Remote ID, FPV spotter. **Country to be confirmed.** | I | 0 |
+| REQ-R1 | Operator registered on AlphaTango (required in France because the drone carries a camera), and the operator number shown on the drone. Remote ID: privately built under 250 g appears exempt; **confirm before the first outdoor flight**. | I | 0 |
 | REQ-R2 | Autonomous flights stay within visual line of sight, with the RC transmitter in hand. | I | 4 |
 | REQ-R3 | Arms can be replaced after a crash without desoldering anything. | I | 0 |
 | REQ-R4 | Firmware is flashed over USB, and Betaflight can be restored to the same board at any time. | D | 1 |
+| REQ-R5 | Radio power within French limits: 5.8 GHz video ≤ 25 mW EIRP; 2.4 GHz (ELRS and Wi-Fi) ≤ 100 mW EIRP. ELRS runs EU LBT firmware on both radio and receiver. | I | 0 |
+| REQ-R6 | Every FPV (goggles) flight has an observer next to the pilot who keeps the drone in sight. | I | 2 |
+| REQ-R7 | Outdoor flights: daytime only, ≤ 120 m above ground, not over public spaces in built-up areas, outside restricted zones (Géoportail map). | I | 0 |
+| REQ-R8 | Third-party liability insurance covers the drone (home insurance or a club licence). | I | 0 |
+
+## Derived (from design decisions)
+
+| ID | Requirement | Verify | Block |
+|---|---|:-:|:-:|
+| REQ-D1 | First bending mode of each arm > ~480 Hz (1.5× hover motor frequency), so frame resonance stays out of the hover band. | A, T | 0 |
+| REQ-D2 | Motor current at full throttle ≤ 16 A (80% of the ESC's 20 A continuous rating). | T | 0 |
+| REQ-D3 | Peak load on the 5 V BEC ≤ 2.0 A (80% of its 2.5 A rating), with every peripheral running. | T | 0–5 |

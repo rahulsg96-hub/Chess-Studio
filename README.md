@@ -14,4 +14,5 @@ python3 wordfreq.py some-file.txt 10   # top 10
 ## chess/ — Chess Studio
 
 A chess app for Windows and Android: play Stockfish or a friend online, with clocks, saved games, engine
-review and training on your own mistakes. See [chess/README.md](chess/README.md).
+review and training on your own mistakes. Live at https://rahulsg96-hub.github.io/claude-workspace/ — see
+[chess/README.md](chess/README.md).

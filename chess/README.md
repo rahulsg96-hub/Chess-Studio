@@ -3,6 +3,8 @@
 A chess app to get better at chess and to play friends from a distance. It runs on Windows (as an installed
 app) and on Android phones from the same code.
 
+**Open it:** https://rahulsg96-hub.github.io/claude-workspace/ (published from `main` by GitHub Pages)
+
 ## What it does
 
 **Play**

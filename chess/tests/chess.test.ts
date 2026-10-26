@@ -46,7 +46,7 @@ test('evaluation helpers', () => {
 });
 
 test('PGN export and import round-trip', () => {
-  const s = new GameSession({ mode: 'local', timeControl: { initial: 0, increment: 0 }, white: 'Rahul', black: 'Meghana' });
+  const s = new GameSession({ mode: 'local', timeControl: { initial: 0, increment: 0 }, white: 'Rahul', black: 'Player 2' });
   for (const [f, t] of [['e2', 'e4'], ['e7', 'e5'], ['g1', 'f3'], ['b8', 'c6']]) assert.ok(s.userMove(f, t));
   s.resign('white');
   const pgn = toPgn(s.toRecord());

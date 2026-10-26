@@ -1,0 +1,215 @@
+"""First-order sizing model: mass budget, hover power, endurance and motor KV.
+
+Reads mass_budget.csv next to this file and prints a Markdown report:
+
+    python3 drone/analysis/sizing.py > drone/analysis/sizing-report.md
+
+Every input is an estimate until it is replaced by a datasheet or a scale reading
+(the `status` column), and the propeller model is momentum theory with an assumed
+figure of merit. Use it to compare options and spot problems early, not to predict
+flight time to the second: expect +/-25% until we have thrust-stand data.
+"""
+
+import csv
+import math
+import sys
+from pathlib import Path
+
+# --- Physics and environment -------------------------------------------------
+G = 9.80665          # m/s^2
+RHO = 1.225          # kg/m^3, sea level at 15 C; hotter or higher air costs power
+
+# --- Airframe -----------------------------------------------------------------
+ROTORS = 4
+PROP_DIAMETER_M = 3 * 0.0254
+
+# --- Propulsion assumptions (replace with thrust-stand data in Phase 3) -------
+FIGURE_OF_MERIT = 0.45           # hover efficiency of a small, low-Reynolds prop
+FIGURE_OF_MERIT_RANGE = (0.38, 0.55)
+MOTOR_EFFICIENCY = 0.75
+ESC_EFFICIENCY = 0.92
+THRUST_COEFF = 0.12              # C_T in T = C_T * rho * n^2 * D^4, n in rev/s
+LOADED_RPM_FRACTION = 0.80       # loaded RPM / (KV * volts)
+
+# --- Battery assumptions ------------------------------------------------------
+CELL_V_NOMINAL = 3.7
+CELL_V_SAGGED = 3.5              # under load, late in the pack
+USABLE_FRACTION = 0.80           # land with ~20% left to protect the pack
+LIPO_WH_PER_KG = 130             # small high-discharge LiPo, cells only
+BATTERY_LEADS_G = 3              # leads + XT30 plug on the pack side
+
+# --- Requirements this model checks (see docs/01-requirements.md) ------------
+MASS_LIMIT_G = 250               # REQ-M1 hard limit
+MASS_DESIGN_TARGET_G = 230       # REQ-M2: keeps 20 g of reserve under the limit
+TW_MIN = 3.0                     # REQ-P1, at sagged voltage
+TW_TARGET = 4.0                  # what we size the motors for
+HOVER_MIN_TARGET = 8.0           # REQ-P2
+MIXED_MIN_TARGET = 5.0           # REQ-P3
+MIXED_POWER_FACTOR = 1.5         # mixed flying draws ~1.5x hover power
+
+# Growth allowance on top of each line item, by how well we know its mass.
+GROWTH_MARGIN = {"estimate": 0.10, "datasheet": 0.05, "measured": 0.0}
+
+# Cumulative configurations, one per roadmap block.
+CONFIGS = [
+    ("Block 0-1: manual flight", {"core"}),
+    ("Block 2: + FPV", {"core", "fpv"}),
+    ("Block 3: + phone link", {"core", "fpv", "companion"}),
+    ("Block 4: + indoor autonomy", {"core", "fpv", "companion", "indoor"}),
+    ("Block 5: + GPS (full build)", {"core", "fpv", "companion", "indoor", "outdoor"}),
+    ("Full build + prop guards", {"core", "fpv", "companion", "indoor", "outdoor", "guards"}),
+]
+FULL_BUILD = CONFIGS[-2][1]
+
+BATTERIES = [(cells, mah) for cells in (3, 4) for mah in (450, 550, 650, 850)]
+BASELINE_BATTERY = (4, 650)
+
+
+def load_items(path):
+    with open(path, newline="") as f:
+        rows = list(csv.DictReader(f))
+    for row in rows:
+        row["mass_g"] = float(row["mass_g"])
+        row["power_w"] = float(row["power_w"])
+        if row["status"] not in GROWTH_MARGIN:
+            raise ValueError(f"unknown status {row['status']!r} for {row['item']!r}")
+    return rows
+
+
+def dry_mass(items, tags):
+    """Mass without battery: (sum of line items, sum including growth margin)."""
+    chosen = [i for i in items if i["tag"] in tags]
+    base = sum(i["mass_g"] for i in chosen)
+    with_margin = sum(i["mass_g"] * (1 + GROWTH_MARGIN[i["status"]]) for i in chosen)
+    return base, with_margin
+
+
+def avionics_power(items, tags):
+    return sum(i["power_w"] for i in items if i["tag"] in tags)
+
+
+def battery_mass_g(cells, mah):
+    wh = cells * CELL_V_NOMINAL * mah / 1000
+    return wh / LIPO_WH_PER_KG * 1000 + BATTERY_LEADS_G
+
+
+def usable_wh(cells, mah):
+    return cells * CELL_V_NOMINAL * mah / 1000 * USABLE_FRACTION
+
+
+def disk_area():
+    return math.pi * (PROP_DIAMETER_M / 2) ** 2
+
+
+def hover_power_w(auw_g, avionics_w, fm=FIGURE_OF_MERIT):
+    """Electrical power from the battery to hover at this all-up weight."""
+    thrust_n = auw_g / 1000 * G / ROTORS
+    ideal_w = thrust_n ** 1.5 / math.sqrt(2 * RHO * disk_area())
+    shaft_w = ideal_w / fm
+    return ROTORS * shaft_w / (MOTOR_EFFICIENCY * ESC_EFFICIENCY) + avionics_w
+
+
+def rpm_for_thrust(thrust_n):
+    rev_per_s = math.sqrt(thrust_n / (THRUST_COEFF * RHO * PROP_DIAMETER_M ** 4))
+    return rev_per_s * 60
+
+
+def min_kv(auw_g, cells):
+    """Smallest motor KV that still reaches TW_TARGET on a sagging pack."""
+    thrust_n = TW_TARGET * auw_g / 1000 * G / ROTORS
+    return rpm_for_thrust(thrust_n) / (cells * CELL_V_SAGGED * LOADED_RPM_FRACTION)
+
+
+def minutes(wh, watts):
+    return wh / watts * 60
+
+
+def check(ok):
+    return "yes" if ok else "**NO**"
+
+
+def report(items):
+    out = []
+    p = out.append
+    p("# Sizing report")
+    p("")
+    p("_Generated by `sizing.py` from `mass_budget.csv`; do not edit by hand._")
+    p("")
+    p(f"Model: momentum theory, figure of merit {FIGURE_OF_MERIT} "
+      f"(range {FIGURE_OF_MERIT_RANGE[0]}-{FIGURE_OF_MERIT_RANGE[1]}), "
+      f"motor x ESC efficiency {MOTOR_EFFICIENCY * ESC_EFFICIENCY:.2f}, "
+      f"{PROP_DIAMETER_M / 0.0254:.0f}-inch props, {USABLE_FRACTION:.0%} usable battery, "
+      f"LiPo at {LIPO_WH_PER_KG} Wh/kg. Expect +/-25% until thrust-stand data replaces the "
+      "assumptions.")
+    p("")
+
+    cells, mah = BASELINE_BATTERY
+    batt_g = battery_mass_g(cells, mah)
+    p(f"## Mass and endurance by roadmap block ({cells}S {mah} mAh, ~{batt_g:.0f} g)")
+    p("")
+    p("| Configuration | Dry (g) | Dry + margin (g) | AUW (g) | <= 230 g | Hover power (W) "
+      "| Hover (min) | Mixed (min) |")
+    p("|---|---:|---:|---:|:-:|---:|---:|---:|")
+    for name, tags in CONFIGS:
+        base, margined = dry_mass(items, tags)
+        auw = margined + batt_g
+        watts = hover_power_w(auw, avionics_power(items, tags))
+        wh = usable_wh(cells, mah)
+        p(f"| {name} | {base:.0f} | {margined:.0f} | {auw:.0f} | "
+          f"{check(auw <= MASS_DESIGN_TARGET_G)} | {watts:.1f} | {minutes(wh, watts):.1f} | "
+          f"{minutes(wh, watts * MIXED_POWER_FACTOR):.1f} |")
+    p("")
+
+    base, margined = dry_mass(items, FULL_BUILD)
+    avionics_w = avionics_power(items, FULL_BUILD)
+    p("## Battery trade (full build)")
+    p("")
+    p(f"Dry mass {margined:.0f} g including margin, avionics {avionics_w:.1f} W. "
+      f"Pass = AUW <= {MASS_DESIGN_TARGET_G} g, hover >= {HOVER_MIN_TARGET:.0f} min and "
+      f"mixed >= {MIXED_MIN_TARGET:.0f} min. Hover range spans the figure-of-merit range.")
+    p("")
+    p("| Pack | Pack (g) | AUW (g) | Hover (W) | Hover current (A) | Hover (min) "
+      "| Hover range (min) | Mixed (min) | Min KV for T/W 4 | Pass |")
+    p("|---|---:|---:|---:|---:|---:|---:|---:|---:|:-:|")
+    for cells, mah in BATTERIES:
+        batt_g = battery_mass_g(cells, mah)
+        auw = margined + batt_g
+        wh = usable_wh(cells, mah)
+        watts = hover_power_w(auw, avionics_w)
+        lo, hi = (minutes(wh, hover_power_w(auw, avionics_w, fm)) for fm in FIGURE_OF_MERIT_RANGE)
+        hover_min = minutes(wh, watts)
+        mixed_min = minutes(wh, watts * MIXED_POWER_FACTOR)
+        ok = (auw <= MASS_DESIGN_TARGET_G and hover_min >= HOVER_MIN_TARGET
+              and mixed_min >= MIXED_MIN_TARGET)
+        p(f"| {cells}S {mah} mAh | {batt_g:.0f} | {auw:.0f} | {watts:.1f} | "
+          f"{watts / (cells * CELL_V_NOMINAL):.1f} | {hover_min:.1f} | {lo:.1f}-{hi:.1f} | "
+          f"{mixed_min:.1f} | {min_kv(auw, cells):.0f} | {check(ok)} |")
+    p("")
+
+    cells, mah = BASELINE_BATTERY
+    auw = margined + battery_mass_g(cells, mah)
+    hover_n = auw / 1000 * G / ROTORS
+    p(f"## Propulsion requirements at the baseline ({cells}S {mah} mAh, AUW {auw:.0f} g)")
+    p("")
+    p("| Quantity | Value |")
+    p("|---|---:|")
+    p(f"| Hover thrust per motor | {hover_n / G * 1000:.0f} g |")
+    p(f"| Thrust per motor for T/W {TW_MIN:.0f} (minimum) | {TW_MIN * hover_n / G * 1000:.0f} g |")
+    p(f"| Thrust per motor for T/W {TW_TARGET:.0f} (target) | "
+      f"{TW_TARGET * hover_n / G * 1000:.0f} g |")
+    p(f"| Disk loading | {auw / 1000 * G / (ROTORS * disk_area()):.0f} N/m^2 |")
+    p(f"| Estimated hover RPM | {rpm_for_thrust(hover_n):,.0f} |")
+    p(f"| Estimated RPM at T/W {TW_TARGET:.0f} | {rpm_for_thrust(TW_TARGET * hover_n):,.0f} |")
+    p(f"| Minimum motor KV on {cells}S | {min_kv(auw, cells):,.0f} |")
+    p("")
+    return "\n".join(out)
+
+
+def main():
+    items = load_items(Path(__file__).with_name("mass_budget.csv"))
+    print(report(items))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

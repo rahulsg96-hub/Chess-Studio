@@ -1,0 +1,15 @@
+tag,subsystem,item,mass_g,power_w,status,notes
+core,Frame,Body + arms (3D-printed PA-CF / PETG-CF),24,0,estimate,Fallback: 3 mm carbon plate arms cut from the same CAD
+core,Frame,"Screws, standoffs, TPU FC/camera mounts",5,0,estimate,
+core,Propulsion,4x 1404-class motors incl. leads,38,0,estimate,~9.5 g each; motor power is modelled separately
+core,Propulsion,"4x 3-inch tri-blade props",7.2,0,estimate,~1.8 g each
+core,Avionics,AIO flight controller + 4-in-1 ESC (20x20),7,0.8,estimate,STM32F4/F7 + ICM-42688-P/BMI270 + baro
+core,Avionics,ExpressLRS 2.4 GHz receiver + antenna,1.5,0.2,estimate,CRSF over UART
+core,Power,"XT30 pigtail, low-ESR capacitor, power wiring",5,0,estimate,
+core,Power,Battery strap + grip pad,3,0,estimate,
+fpv,FPV,Camera (analog nano class),4,0.8,estimate,Digital (DJI/Walksnail/HDZero) is heavier: re-run once chosen
+fpv,FPV,Video transmitter + 5.8 GHz antenna,4.5,2.5,estimate,Power at ~200 mW RF output
+companion,Comms,ESP32-C3 mini board + antenna,2.5,0.6,estimate,Wi-Fi/BLE bridge to phone/laptop; average draw
+indoor,Sensors,Optical flow + time-of-flight combo module,3,0.15,estimate,Downward-facing; PMW3901 + VL53L1X class
+outdoor,Sensors,GPS (u-blox M10 class) + compass on mast,7,0.15,estimate,Mast keeps the compass away from power wiring
+guards,Frame,Printed prop guards (indoor testing),12,0,estimate,Optional; bolt-on

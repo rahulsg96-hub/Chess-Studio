@@ -59,7 +59,7 @@ firmware, modular stages) count as requirements here, not extras.
 | ID | Requirement | Verify | Block |
 |---|---|:-:|:-:|
 | REQ-S1 | Arming only from the RC transmitter, and only with throttle low, sensors healthy and tilt < 25°. | T | 1 |
-| REQ-S2 | An RC **kill switch** stops all motors within 20 ms, in every mode, including autonomous ones. | T | 1 |
+| REQ-S2 | An RC **kill switch** commands all motors off within 20 ms, in every mode, including autonomous ones. | T | 1 |
 | REQ-S3 | The phone/laptop link can never arm the drone or override the kill switch. It may only send commands while the RC link is healthy. | T | 3 |
 | REQ-S4 | RC link lost > 0.5 s: level out and hold altitude, or descend slowly if no altitude source. Lost > 3 s: land (or return to launch once GPS is trusted). | T | 1 |
 | REQ-S5 | If the firmware hangs, the motors stop within 100 ms (hardware watchdog + ESC signal-loss timeout). | T | 1 |

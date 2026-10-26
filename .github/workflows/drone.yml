@@ -1,0 +1,32 @@
+name: Drone
+
+on:
+  push:
+    branches: [main]
+    paths: ['drone/**', '.github/workflows/drone.yml']
+  pull_request:
+    paths: ['drone/**', '.github/workflows/drone.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: drone-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the flight-controller core and simulator
+        run: |
+          cmake -S drone/firmware -B build
+          cmake --build build
+      - name: Unit tests and simulator requirement checks
+        run: ctest --test-dir build --output-on-failure
+      - name: Generated reports match their inputs
+        run: |
+          python3 drone/analysis/sizing.py | diff - drone/analysis/sizing-report.md
+          python3 drone/analysis/bom.py | diff - drone/analysis/bom-report.md

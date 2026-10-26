@@ -133,7 +133,10 @@ The board has six UARTs. The built-in receiver takes one, which leaves five for 
 
 We assign specific UARTs once we have the board's pad layout in hand.
 
-## Firmware architecture (proposed; we'll firm it up in the firmware phase)
+## Firmware architecture
+
+`core/` and `sim/` exist and pass their checks; see [firmware/README.md](../firmware/README.md).
+`drivers/` comes when the hardware arrives.
 
 ```
 firmware/

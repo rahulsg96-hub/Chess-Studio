@@ -23,7 +23,7 @@ export function HomeView() {
   const [level, setLevel] = useState<number>(() => remember('home.level', 4));
   const [tc, setTc] = useState<TimeControl>(() => remember('home.tc', { initial: 600, increment: 0 }));
   const [whiteName, setWhiteName] = useState(() => remember('home.whiteName', settings.playerName));
-  const [blackName, setBlackName] = useState(() => remember('home.blackName', 'Meghana'));
+  const [blackName, setBlackName] = useState(() => remember('home.blackName', 'Player 2'));
   const [custom, setCustom] = useState(false);
   const saved = useMemo(() => (session?.status === 'playing' ? null : savedSession()), [session]);
 
